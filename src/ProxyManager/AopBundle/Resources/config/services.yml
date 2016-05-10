@@ -1,0 +1,48 @@
+services:
+    proxy_manager_aop.factory.config:
+        class: ProxyManager\Configuration
+        public: false
+        calls:
+            - ['setProxiesTargetDir', ['%proxy_manager_aop.proxy_cache_dir%']]
+
+    proxy_manager_aop.factory.access_interceptor_scope_localizer:
+        class: ProxyManager\Factory\AccessInterceptorScopeLocalizerFactory
+        public: false
+        arguments:
+            - '@proxy_manager_aop.factory.config'
+
+    proxy_manager_aop.factory.proxy_factory:
+        class: ProxyManager\AopBundle\Aop\ProxyFactory
+        public: false
+        arguments:
+            - '@proxy_manager_aop.factory.access_interceptor_scope_localizer'
+
+    proxy_manager_aop.proxy_cache_warmer:
+        class: ProxyManager\AopBundle\Proxy\ProxyCacheWarmer
+        arguments:
+            - '%proxy_manager_aop.proxy_cache_dir%'
+        tags:
+            - { name: kernel.cache_warmer }
+
+    #-------------------
+    # Aspects.
+    #-------------------
+    proxy_manager_aop.aspect.test:
+        class: ProxyManager\AopBundle\Aop\Aspect\TestAspect
+        public: false
+
+    proxy_manager_aop.aspect.auth_check:
+        class: ProxyManager\AopBundle\Aop\Aspect\AuthorizationCheckerAspect
+        public: false
+        arguments:
+            - '@security.authorization_checker'
+
+    #-----------------------------
+    # TEST services. TODO: remove.
+    #-----------------------------
+    test.service:
+        class: ProxyManager\AopBundle\Tests\TestClass
+        tags:
+            - { name: auth_check, method: foo, role: ROLE_ADMIN }
+            - { name: aop.test, method: foo }
+            - { name: aop.test, method: baz }

@@ -1,0 +1,10 @@
+parameters:
+    proxy_manager_aop.proxy_cache_dir: %kernel.cache_dir%/aop-proxy
+
+    proxy_manager_aop.aspects:
+        test_aspect:
+            service: proxy_manager_aop.aspect.test
+            priority: 255
+            declaration:
+                name: aop.test
+                options: []
